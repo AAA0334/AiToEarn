@@ -1,17 +1,17 @@
-# AiToEarn 🤖
+# AiToEarn
 
-AI ke zariye kamane ka safar — Termux se shuru!
+AI ke zariye kamane ka safar - Termux se shuru!
 
 ## About
-Yeh project AI tools aur automation ke zariye earning seekhne ke liye hai.
+Yeh project AI tools se earning seekhne ke liye hai.
 
-## Tools Used
+## Tools
 - Termux
 - Python
-- Nmap (security learning)
+- Nmap
 
 ## Status
-🚧 Under Development — Day 1
+Day 1 - Shuruwat
 
----
-Made with 💙 by AAA0334
+Made by AAA0334
+
