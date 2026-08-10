@@ -15,6 +15,11 @@ import { TwitterOAuthCredential, XChunkedMediaUploadRequest, XCreatePostRequest,
 import { TwitterService as TwitterApiService } from '../../libs/twitter/twitter.service'
 import { PlatformBaseService } from '../base.service'
 import { ChannelAccountService } from '../channel-account.service'
+import {
+  OAuth2CredentialStore,
+  readOAuth2Credential,
+  writeOAuth2Credential,
+} from '../oauth2-credential.util'
 import { PlatformAuthExpiredException } from '../platform.exception'
 import { TWITTER_TIME_CONSTANTS } from './constants'
 import { UserTimelineDto } from './twitter.dto'
@@ -61,41 +66,31 @@ export class TwitterService extends PlatformBaseService {
     this.channelAccountService = channelAccountService
   }
 
+  private get oauth2CredentialStore(): OAuth2CredentialStore {
+    return {
+      redisService: this.redisService,
+      oauth2CredentialRepository: this.oauth2CredentialRepository,
+      platform: this.platform,
+    }
+  }
+
   private async saveOAuthCredential(accountId: string, accessTokenInfo: TwitterOAuthCredential) {
     accessTokenInfo.expires_in = accessTokenInfo.expires_in + getCurrentTimestamp() - TWITTER_TIME_CONSTANTS.TOKEN_REFRESH_MARGIN
-    const cached = await this.redisService.setJson(
-      ChannelRedisKeys.accessToken('twitter', accountId),
+    return writeOAuth2Credential(
+      this.oauth2CredentialStore,
+      accountId,
       accessTokenInfo,
     )
-    const persistResult = await this.oauth2CredentialRepository.upsertOne(
-      accountId,
-      this.platform,
-      {
-        accessToken: accessTokenInfo.access_token,
-        refreshToken: accessTokenInfo.refresh_token,
-        accessTokenExpiresAt: accessTokenInfo.expires_in,
-      },
-    )
-    return cached && persistResult
   }
 
   private async getOAuth2Credential(accountId: string): Promise<TwitterOAuthCredential | null> {
-    let credential = await this.redisService.getJson<TwitterOAuthCredential>(
-      ChannelRedisKeys.accessToken('twitter', accountId),
+    const credential = await readOAuth2Credential<TwitterOAuthCredential>(
+      this.oauth2CredentialStore,
+      accountId,
+      tokens => tokens,
     )
     if (!credential) {
-      const oauth2Credential = await this.oauth2CredentialRepository.getOne(
-        accountId,
-        this.platform,
-      )
-      if (!oauth2Credential) {
-        throw new PlatformAuthExpiredException(this.platform, accountId)
-      }
-      credential = {
-        access_token: oauth2Credential.accessToken,
-        refresh_token: oauth2Credential.refreshToken,
-        expires_in: oauth2Credential.accessTokenExpiresAt,
-      }
+      throw new PlatformAuthExpiredException(this.platform, accountId)
     }
     return credential
   }

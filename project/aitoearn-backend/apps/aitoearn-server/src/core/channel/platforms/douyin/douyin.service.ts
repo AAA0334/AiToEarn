@@ -17,6 +17,11 @@ import { DouyinApiService } from '../../libs/douyin/douyin-api.service'
 import { PlatformBaseService } from '../base.service'
 import { ChannelAccountService } from '../channel-account.service'
 import { AuthCallbackResult, AuthTaskInfo } from '../common'
+import {
+  OAuth2CredentialStore,
+  readOAuth2Credential,
+  writeOAuth2Credential,
+} from '../oauth2-credential.util'
 import { PlatformAuthExpiredException } from '../platform.exception'
 import { AccessToken, ArchiveStatus, DouyinAuthInfo } from './common'
 
@@ -143,6 +148,14 @@ export class DouyinService extends PlatformBaseService {
     return douyinUserInfo
   }
 
+  private get oauth2CredentialStore(): OAuth2CredentialStore {
+    return {
+      redisService: this.redisService,
+      oauth2CredentialRepository: this.oauth2CredentialRepository,
+      platform: this.platform,
+    }
+  }
+
   /**
    * 保存用户的授权信息
    * @param accountId
@@ -153,21 +166,12 @@ export class DouyinService extends PlatformBaseService {
     accountId: string,
     accessTokenInfo: DouyinAccessTokenInfo,
   ) {
-    const cached = await this.redisService.setJson(
-      ChannelRedisKeys.accessToken('douyin', accountId),
+    return writeOAuth2Credential(
+      this.oauth2CredentialStore,
+      accountId,
       accessTokenInfo,
       accessTokenInfo.expires_in,
     )
-    const persistResult = await this.oauth2CredentialRepository.upsertOne(
-      accountId,
-      this.platform,
-      {
-        accessToken: accessTokenInfo.access_token,
-        refreshToken: accessTokenInfo.refresh_token,
-        accessTokenExpiresAt: accessTokenInfo.expires_in,
-      },
-    )
-    return cached && persistResult
   }
 
   /**
@@ -301,25 +305,11 @@ export class DouyinService extends PlatformBaseService {
   private async getOAuth2Credential(
     accountId: string,
   ): Promise<AccessToken | null> {
-    let credential = await this.redisService.getJson<AccessToken>(
-      ChannelRedisKeys.accessToken('douyin', accountId),
+    return readOAuth2Credential<AccessToken>(
+      this.oauth2CredentialStore,
+      accountId,
+      tokens => ({ ...tokens, scopes: [] }),
     )
-    if (!credential) {
-      const oauth2Credential = await this.oauth2CredentialRepository.getOne(
-        accountId,
-        this.platform,
-      )
-      if (!oauth2Credential) {
-        return null
-      }
-      credential = {
-        access_token: oauth2Credential.accessToken,
-        refresh_token: oauth2Credential.refreshToken,
-        expires_in: oauth2Credential.accessTokenExpiresAt,
-        scopes: [],
-      }
-    }
-    return credential
   }
 
   /**

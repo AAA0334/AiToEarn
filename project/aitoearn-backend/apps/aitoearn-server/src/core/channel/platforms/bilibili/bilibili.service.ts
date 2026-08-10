@@ -22,6 +22,11 @@ import {
 import { PlatformBaseService } from '../base.service'
 import { ChannelAccountService } from '../channel-account.service'
 import { AuthCallbackResult, AuthTaskInfo } from '../common'
+import {
+  OAuth2CredentialStore,
+  readOAuth2Credential,
+  writeOAuth2Credential,
+} from '../oauth2-credential.util'
 import { PlatformAuthExpiredException } from '../platform.exception'
 import { BilibiliAuthInfo } from './common'
 
@@ -176,36 +181,27 @@ export class BilibiliService extends PlatformBaseService {
     return bilibiliUserInfo
   }
 
+  private get oauth2CredentialStore(): OAuth2CredentialStore {
+    return {
+      redisService: this.redisService,
+      oauth2CredentialRepository: this.oauth2CredentialRepository,
+      platform: this.platform,
+    }
+  }
+
   private async saveOAuthCredential(
     accountId: string,
     accessTokenInfo: AccessToken,
   ) {
-    this.logger.debug({
-      path: `bilibili --- saveOAuthCredential --- 1`,
-      data: accessTokenInfo,
-    })
-    const cached = await this.redisService.setJson(
-      ChannelRedisKeys.accessToken('bilibili', accountId),
+    const saved = await writeOAuth2Credential(
+      this.oauth2CredentialStore,
+      accountId,
       accessTokenInfo,
     )
     this.logger.debug({
-      path: `bilibili --- saveOAuthCredential --- 2`,
-      data: cached,
+      path: `bilibili --- saveOAuthCredential`,
+      data: { accessTokenInfo, saved },
     })
-    const persistResult = await this.oauth2CredentialRepository.upsertOne(
-      accountId,
-      this.platform,
-      {
-        accessToken: accessTokenInfo.access_token,
-        refreshToken: accessTokenInfo.refresh_token,
-        accessTokenExpiresAt: accessTokenInfo.expires_in,
-      },
-    )
-    this.logger.debug({
-      path: `bilibili --- saveOAuthCredential --- 3`,
-      data: persistResult,
-    })
-    const saved = cached && persistResult
     return saved
   }
 
@@ -327,25 +323,11 @@ export class BilibiliService extends PlatformBaseService {
   private async getOAuth2Credential(
     accountId: string,
   ): Promise<AccessToken | null> {
-    let credential = await this.redisService.getJson<AccessToken>(
-      ChannelRedisKeys.accessToken('bilibili', accountId),
+    return readOAuth2Credential<AccessToken>(
+      this.oauth2CredentialStore,
+      accountId,
+      tokens => ({ ...tokens, scopes: [] }),
     )
-    if (!credential) {
-      const oauth2Credential = await this.oauth2CredentialRepository.getOne(
-        accountId,
-        this.platform,
-      )
-      if (!oauth2Credential) {
-        return null
-      }
-      credential = {
-        access_token: oauth2Credential.accessToken,
-        refresh_token: oauth2Credential.refreshToken,
-        expires_in: oauth2Credential.accessTokenExpiresAt,
-        scopes: [],
-      }
-    }
-    return credential
   }
 
   /**

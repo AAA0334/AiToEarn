@@ -5,7 +5,7 @@
  * @LastEditors: nevin
  * @Description: b站-统计数据
  */
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { AccountType } from '@yikart/common'
 import { AccountRepository } from '@yikart/mongodb'
@@ -14,7 +14,6 @@ import { DataCubeBase } from './data.base'
 
 @Injectable()
 export class BilibiliDataService extends DataCubeBase {
-  private readonly logger = new Logger(BilibiliDataService.name)
   constructor(
     readonly bilibiliService: BilibiliService,
     private readonly accountRepository: AccountRepository,
@@ -39,13 +38,6 @@ export class BilibiliDataService extends DataCubeBase {
     }
   }
 
-  async getAccountDataBulk(accountId: string) {
-    this.logger.log('getAccountDataBulk', accountId)
-    return {
-      list: [],
-    }
-  }
-
   async getArcDataCube(accountId: string, dataId: string) {
     const res = await this.bilibiliService.getArcStat(accountId, dataId)
 
@@ -56,15 +48,6 @@ export class BilibiliDataService extends DataCubeBase {
       likeNum: res.like,
       shareNum: res.share,
       collectNum: res.favorite,
-    }
-  }
-
-  async getArcDataBulk(accountId: string, dataId: string) {
-    this.logger.log('getArcDataBulk', accountId, dataId)
-    return {
-      recordId: '',
-      dataId: '',
-      list: [],
     }
   }
 }

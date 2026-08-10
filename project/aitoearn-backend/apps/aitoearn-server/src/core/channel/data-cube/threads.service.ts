@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { AccountType } from '@yikart/common'
 import { AccountRepository } from '@yikart/mongodb'
@@ -7,7 +7,6 @@ import { DataCubeBase } from './data.base'
 
 @Injectable()
 export class ThreadsDataService extends DataCubeBase {
-  private readonly logger = new Logger(ThreadsDataService.name)
   constructor(
     readonly threadsService: ThreadsService,
     private readonly accountRepository: AccountRepository,
@@ -41,14 +40,6 @@ export class ThreadsDataService extends DataCubeBase {
     }
   }
 
-  // Todo : Implement bulk data retrieval for crawler service
-  async getAccountDataBulk(accountId: string) {
-    this.logger.log('getAccountDataBulk', accountId)
-    return {
-      list: [],
-    }
-  }
-
   async getArcDataCube(accountId: string, dataId: string) {
     const query = {
       metric: 'likes,views,replies,shares',
@@ -59,16 +50,6 @@ export class ThreadsDataService extends DataCubeBase {
       likeNum: res?.data?.filter(item => item.name === 'likes')?.[0]?.values?.[0]?.value || 0,
       shareNum: res?.data?.filter(item => item.name === 'shares')?.[0]?.values?.[0]?.value || 0,
       viewNum: res?.data?.filter(item => item.name === 'views')?.[0]?.values?.[0]?.value || 0,
-    }
-  }
-
-  // Todo : Implement bulk data retrieval for crawler service
-  async getArcDataBulk(accountId: string, dataId: string) {
-    this.logger.log('getArcDataBulk', accountId, dataId)
-    return {
-      recordId: '',
-      dataId: '',
-      list: [],
     }
   }
 }

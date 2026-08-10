@@ -5,7 +5,7 @@
  * @LastEditors: nevin
  * @Description: b站-统计数据
  */
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { AccountType } from '@yikart/common'
 import { AccountRepository } from '@yikart/mongodb'
@@ -14,7 +14,6 @@ import { DataCubeBase } from './data.base'
 
 @Injectable()
 export class PinterestDataService extends DataCubeBase {
-  private readonly logger = new Logger(PinterestDataService.name)
   constructor(
     readonly pinterestService: PinterestService,
     private readonly accountRepository: AccountRepository,
@@ -39,13 +38,6 @@ export class PinterestDataService extends DataCubeBase {
     }
   }
 
-  async getAccountDataBulk(accountId: string) {
-    this.logger.log('getAccountDataBulk', accountId)
-    return {
-      list: [],
-    }
-  }
-
   async getArcDataCube(accountId: string) {
     const res: any = await this.pinterestService.getUserStat(accountId)
     const { userInfo } = res
@@ -54,15 +46,6 @@ export class PinterestDataService extends DataCubeBase {
       playNum: userInfo.monthly_views,
       pin_count: userInfo.pin_count,
       board_count: userInfo.board_count,
-    }
-  }
-
-  async getArcDataBulk(accountId: string, dataId: string) {
-    this.logger.log('getArcDataBulk', accountId, dataId)
-    return {
-      recordId: '',
-      dataId: '',
-      list: [],
     }
   }
 }

@@ -36,14 +36,6 @@ export class XhsDataService extends DataCubeBase {
     }
   }
 
-  // 账户数据增量
-  async getAccountDataBulk(accountId: string) {
-    this.logger.log('getAccountDataBulk', accountId)
-    return {
-      list: [],
-    }
-  }
-
   // 作品数据
   async getArcDataCube(accountId: string, dataId: string) {
     this.logger.log('getArcDataCube', accountId, dataId)
@@ -52,16 +44,6 @@ export class XhsDataService extends DataCubeBase {
       likeNum: 0,
       playNum: 0,
       commentNum: 0,
-    }
-  }
-
-  // 作品数据增量
-  async getArcDataBulk(accountId: string, dataId: string) {
-    this.logger.log('getArcDataBulk', accountId, dataId)
-    return {
-      recordId: '',
-      dataId: '',
-      list: [],
     }
   }
 }

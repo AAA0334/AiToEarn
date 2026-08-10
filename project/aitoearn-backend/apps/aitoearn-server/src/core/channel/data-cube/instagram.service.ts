@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { AccountType } from '@yikart/common'
 import { AccountRepository } from '@yikart/mongodb'
@@ -8,7 +8,6 @@ import { DataCubeBase } from './data.base'
 
 @Injectable()
 export class InstagramDataService extends DataCubeBase {
-  private readonly logger = new Logger(InstagramDataService.name)
   constructor(
     readonly instagramService: InstagramService,
     private readonly accountRepository: AccountRepository,
@@ -37,7 +36,7 @@ export class InstagramDataService extends DataCubeBase {
   }
 
   // Todo : Implement bulk data retrieval for crawler service
-  async getAccountDataBulk(accountId: string) {
+  override async getAccountDataBulk(accountId: string) {
     const query: InstagramInsightsRequest = {
       metric: 'comments,likes,replies,shares,views,reach,follows_and_unfollows',
       period: 'day',
@@ -59,16 +58,6 @@ export class InstagramDataService extends DataCubeBase {
       likeNum: res?.data?.filter(item => item.name === 'likes')[0]?.values[0]?.value || 0,
       shareNum: res?.data?.filter(item => item.name === 'shares')[0]?.values[0]?.value || 0,
       viewNum: res?.data?.filter(item => item.name === 'views')[0]?.values[0]?.value || 0,
-    }
-  }
-
-  // Todo : Implement bulk data retrieval for crawler service
-  async getArcDataBulk(accountId: string, dataId: string) {
-    this.logger.log('getArcDataBulk', accountId, dataId)
-    return {
-      recordId: '',
-      dataId: '',
-      list: [],
     }
   }
 }

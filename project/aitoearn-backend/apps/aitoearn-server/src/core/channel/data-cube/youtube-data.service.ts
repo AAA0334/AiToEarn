@@ -46,14 +46,6 @@ export class YoutubeDataService extends DataCubeBase {
     }
   }
 
-  // 账户数据增量
-  async getAccountDataBulk(accountId: string) {
-    this.logger.log('getAccountDataBulk', accountId)
-    return {
-      list: [],
-    }
-  }
-
   // 作品数据
   async getArcDataCube(accountId: string, dataId: string) {
     this.logger.log('getArcDataCube', accountId, dataId)
@@ -69,16 +61,6 @@ export class YoutubeDataService extends DataCubeBase {
       likeNum: Number.parseInt(statData?.['likeCount'] || '0') || 0,
       playNum: Number.parseInt(statData?.['viewCount'] || '0') || 0,
       commentNum: Number.parseInt(statData?.['commentCount'] || '0') || 0,
-    }
-  }
-
-  // 作品数据增量
-  async getArcDataBulk(accountId: string, dataId: string) {
-    this.logger.log('getArcDataBulk', accountId, dataId)
-    return {
-      recordId: '',
-      dataId: '',
-      list: [],
     }
   }
 }

@@ -41,25 +41,9 @@ export class WxGzhDataService extends DataCubeBase {
     }
   }
 
-  async getAccountDataBulk(accountId: string) {
-    this.logger.log('getAccountDataBulk', accountId)
-    return {
-      list: [],
-    }
-  }
-
   async getArcDataCube(accountId: string, dataId: string) {
     this.logger.log('getArcDataCube', accountId, dataId)
     return {
-    }
-  }
-
-  async getArcDataBulk(accountId: string, dataId: string) {
-    this.logger.log('getArcDataBulk', accountId, dataId)
-    return {
-      recordId: '',
-      dataId: '',
-      list: [],
     }
   }
 }
